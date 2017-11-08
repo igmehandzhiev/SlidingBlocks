@@ -6,45 +6,51 @@ import java.util.*;
  */
 public class SlidingBlocksApp {
 
-    static final Comparator<State> lowestFScore = new LowestFScore();
+    static final LowestFScore lowestFScore = new LowestFScore();
     static LinkedList<State> path = new LinkedList<>();
     static HashMap<Integer, int[]> goalMap = new HashMap<>();
 
-
-    private static HashSet<State> closedSet = new HashSet<>();
+    private static Set<State> closedSet = new HashSet<>();
     private static PriorityQueue<State> openStates = new PriorityQueue<>(lowestFScore);
-    private static HashMap<State, State> cameFrom = new HashMap<>();
+//    private static HashMap<State, State> cameFrom = new HashMap<>();
 
     private static int iterations = 0;
 
     static LinkedList<State> aStar(int n) {
 
-        final State goal = new State(getGoalPuzzle(n), (int) Math.pow(n, n), 0);
-        final State initState = generatePuzzle(n);
+        final State goal = new State(getGoalPuzzle(n), Integer.MAX_VALUE, 0);
+        State initState = generateInitState(n);
+
+        while (!isSolvable(initState.getPuzzle(), initState.getEmptyCoordinates())) {
+            initState = generateInitState(n);
+        }
 
         System.out.println("INIT_STATE" + initState);
 
         openStates.add(initState);
 
+        int i = 0;
         while (!openStates.isEmpty()) {
 
             State current = openStates.peek();
 
-            int i = 0;
-            for (State st :
-                    openStates) {
-                System.out.println("CURRENT " + (i++) + ": " + st);
-            }
-
+//            System.out.println("Open States :" + openStates.size());
+//            for (State st :
+//                    openStates) {
+//
+//
+//                System.out.println(i + " " + st);
+//            }
+//            i++;
+//
             if (current.equals(goal)) {
-                return path = reconstructPath(cameFrom, current);
+                return path = reconstructPath(current);
             }
 
             closedSet.add(openStates.poll());
 
             for (State neighbour :
                     currentNeighbours(current, current.getEmptyCoordinates())) {
-
 
                 if (closedSet.contains(neighbour)) {
                     continue;
@@ -54,20 +60,8 @@ public class SlidingBlocksApp {
                     openStates.add(neighbour);
                 }
 
-                Integer tempFScore = neighbour.getfScore();
-                Integer tempGScore = current.getgScore() + 1;
-                if (tempFScore >= current.getfScore() && tempGScore >= neighbour.getgScore()) {
-                    continue;
-                }
-                if (tempGScore <= neighbour.getgScore()) {
-                }
-                neighbour.setgScore(tempGScore);
-                openStates.add(neighbour);
-
-
 //                System.out.println("ADD_CHILD : " + iterations++);
                 iterations++;
-                cameFrom.put(neighbour, current);
             }
         }
         return path;
@@ -75,7 +69,7 @@ public class SlidingBlocksApp {
 
     }
 
-    static State generatePuzzle(int n) {
+    static State generateInitState(int n) {
         final int length = n + 1;
         final int puzzleSize = (int) Math.sqrt(n);
         int[][] initPuzzle = new int[puzzleSize + 1][puzzleSize + 1];
@@ -103,6 +97,7 @@ public class SlidingBlocksApp {
         initState.setgScore(0);
         initState.sethScore(hCostEstimate(initPuzzle));
         initState.setEmptyCoordinates(emptyCoordinates);
+        initState.setParent(null);
 
         return initState;
     }
@@ -135,24 +130,24 @@ public class SlidingBlocksApp {
     private static Iterable<? extends State> currentNeighbours(State current, int[] emptyCoordinates) {
 
 
-        HashSet<State> neighbours = new LinkedHashSet<>();
+        HashSet<State> children = new LinkedHashSet<>();
         if (canMove(current, Direction.LEFT, emptyCoordinates)) {
-            neighbours.add(move(current, Direction.LEFT, emptyCoordinates));
+            children.add(generateChild(current, Direction.LEFT, emptyCoordinates));
         }
         if (canMove(current, Direction.RIGHT, emptyCoordinates)) {
-            neighbours.add(move(current, Direction.RIGHT, emptyCoordinates));
+            children.add(generateChild(current, Direction.RIGHT, emptyCoordinates));
         }
         if (canMove(current, Direction.UP, emptyCoordinates)) {
-            neighbours.add(move(current, Direction.UP, emptyCoordinates));
+            children.add(generateChild(current, Direction.UP, emptyCoordinates));
         }
         if (canMove(current, Direction.DOWN, emptyCoordinates)) {
-            neighbours.add(move(current, Direction.DOWN, emptyCoordinates));
+            children.add(generateChild(current, Direction.DOWN, emptyCoordinates));
         }
 
         iterations++;
 //        System.out.println("GENERATE_NEIGHBOURS : " + iterations++);
 
-        return neighbours;
+        return children;
     }
 
     private static boolean canMove(State current, Direction direction, int[] emptyCoordinates) {
@@ -175,7 +170,7 @@ public class SlidingBlocksApp {
     }
 
 
-    private static State move(State current, Direction direction, int[] emptyCoordinates) {
+    private static State generateChild(State current, Direction direction, int[] emptyCoordinates) {
         final int[][] currentPuzzle = current.getPuzzle();
         int[][] childPuzzle = new int[currentPuzzle.length][];
         for (int i = 0; i < currentPuzzle.length; i++) {
@@ -220,14 +215,11 @@ public class SlidingBlocksApp {
         }
 
         State childState = new State(childPuzzle);
-        childState.setgScore(current.getgScore() + 1);
         childState.sethScore(hCostEstimate(childState.getPuzzle()));
         childState.setEmptyCoordinates(childEmptyCoordinates);
-
+        childState.setParent(current);
         iterations++;
 //        System.out.println("RETURN_NEW_CHILD : " + iterations++);
-
-
         return childState;
     }
 
@@ -260,15 +252,57 @@ public class SlidingBlocksApp {
     }
 
 
-    private static LinkedList<State> reconstructPath(HashMap<State,
-            State> cameFrom, State current) {
+    private static LinkedList<State> reconstructPath(State current) {
         LinkedList<State> totalPath = new LinkedList<>();
-        totalPath.add(current);
-        while (cameFrom.containsKey(current)) {
-            current = cameFrom.get(current);
-            totalPath.addLast(current);
+
+        while (current.getParent() != null) {
+            totalPath.addFirst(current);
+            current = current.getParent();
         }
+
+        totalPath.addFirst(current);
         return totalPath;
+    }
+
+    private static boolean isSolvable(int[][] puzzle, int[] emptyCoordinates) {
+        int[] tiles = new int[puzzle.length * puzzle.length - 1];
+        int i = 0;
+        for (int[] row :
+                puzzle) {
+            for (int number :
+                    row) {
+                if (number == 0) {
+                    continue;
+                }
+                tiles[i++] = number;
+            }
+        }
+
+        int inversions = 0;
+
+        for (int current = 0; current < tiles.length; ++current) {
+            for (int next = current + 1; next < tiles.length; ++next) {
+                if (tiles[current] > tiles[next]) {
+                    inversions++;
+                }
+            }
+        }
+/*
+The formula says:
+If the grid width is odd, then the number of inversions in a solvable situation is even.
+
+If the grid width is even, and the blank is on an even row counting from the bottom (second-last, fourth-last etc),
+then the number of inversions in a solvable situation is odd.
+
+If the grid width is even, and the blank is on an odd row counting from the bottom (last, third-last, fifth-last etc)
+then the number of inversions in a solvable situation is even.
+
+( (grid width odd) && (#inversions even) )  ||
+( (grid width even) && ((blank on odd row from bottom) == (#inversions even)) )
+ */
+
+        return ((puzzle.length % 2 == 1) && (inversions % 2 == 0)) ||
+                ((puzzle.length % 2 == 0) && ((emptyCoordinates[0] % 2 == 0) == (inversions % 2 == 0)));
     }
 
     public static void main(String[] args) {

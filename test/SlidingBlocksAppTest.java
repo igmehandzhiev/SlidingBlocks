@@ -30,11 +30,11 @@ public class SlidingBlocksAppTest {
     }
 
     /**
-     * Method: generatePuzzle(int n)
+     * Method: generateInitState(int n)
      */
     @Test
     public void testGeneratePuzzle() throws Exception {
-        State initState = SlidingBlocksApp.generatePuzzle(n);
+        State initState = SlidingBlocksApp.generateInitState(n);
         HashSet<Integer> numbers = new HashSet<>();
 
         for (int[] row :

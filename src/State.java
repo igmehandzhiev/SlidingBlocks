@@ -5,11 +5,13 @@ import java.util.Arrays;
  * @since 06-Nov-17
  */
 public class State {
-    int[][] puzzle;
+    private int[][] puzzle;
 
-    int gScore;
-    int hScore;
-    int fScore = gScore + hScore;
+    private int gScore;
+    private int hScore;
+    private int fScore;
+    private State parent;
+
 
     public int[] getEmptyCoordinates() {
         return emptyCoordinates;
@@ -40,11 +42,11 @@ public class State {
     }
 
     public int getfScore() {
-        return fScore;
+        return getgScore() + gethScore();
     }
 
     public int getgScore() {
-        return gScore;
+        return parent != null ? (parent.getgScore() + 1) : 0;
     }
 
     public void setgScore(int parentGScore) {
@@ -59,6 +61,14 @@ public class State {
         this.hScore = hScore;
 
         this.fScore = getgScore() + hScore;
+    }
+
+    public State getParent() {
+        return parent;
+    }
+
+    public void setParent(State parent) {
+        this.parent = parent;
     }
 
     @Override
@@ -79,10 +89,12 @@ public class State {
     @Override
     public String toString() {
         return "State{" +
-                "puzzle=" + printArray(puzzle) +
-                ", gScore=" + gScore +
-                ", hScore=" + hScore +
-                ", fScore=" + fScore +
+                "puzzle=" +
+                printArray(puzzle)
+                +
+                ", gScore=" + getgScore() +
+                ", hScore=" + gethScore() +
+                ", fScore=" + getfScore() +
                 ", emptyCoordinates=" + Arrays.toString(emptyCoordinates) +
                 '}';
     }

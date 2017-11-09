@@ -1,3 +1,6 @@
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 
 /**
@@ -7,74 +10,74 @@ import java.util.Arrays;
 public class State {
     private int[][] puzzle;
 
-    private int gScore;
     private int hScore;
-    private int fScore;
     private State parent;
 
 
-    public int[] getEmptyCoordinates() {
+    int[] getEmptyCoordinates() {
         return emptyCoordinates;
     }
 
-    public void setEmptyCoordinates(int[] emptyCoordinates) {
+    void setEmptyCoordinates(int... emptyCoordinates) {
         this.emptyCoordinates = emptyCoordinates;
     }
 
-    int[] emptyCoordinates;
+    private int[] emptyCoordinates;
 
-    public State(int[][] puzzle) {
+    State(int[][] puzzle) {
         this.setPuzzle(puzzle);
     }
 
-    public State(int[][] puzzle, int gScore, int hScore) {
+    State(int[][] puzzle, int gScore, int hScore) {
         this.setPuzzle(puzzle);
         this.setgScore(gScore);
         this.sethScore(hScore);
     }
 
-    public int[][] getPuzzle() {
+    int[][] getPuzzle() {
         return puzzle;
     }
 
-    public void setPuzzle(int[][] puzzle) {
+    private void setPuzzle(int[]... puzzle) {
         this.puzzle = puzzle;
     }
 
-    public int getfScore() {
+    int getfScore() {
         return getgScore() + gethScore();
     }
 
-    public int getgScore() {
+    private int getgScore() {
         return parent != null ? (parent.getgScore() + 1) : 0;
     }
 
-    public void setgScore(int parentGScore) {
-        this.gScore = parentGScore;
+    void setgScore(int parentGScore) {
     }
 
-    public int gethScore() {
+    private int gethScore() {
         return hScore;
     }
 
-    public void sethScore(int hScore) {
+    void sethScore(int hScore) {
         this.hScore = hScore;
 
-        this.fScore = getgScore() + hScore;
     }
 
-    public State getParent() {
+    State getParent() {
         return parent;
     }
 
-    public void setParent(State parent) {
+    void setParent(State parent) {
         this.parent = parent;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(@Nullable Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         State state = (State) o;
 
@@ -86,24 +89,25 @@ public class State {
         return Arrays.deepHashCode(puzzle);
     }
 
+    @NotNull
     @Override
     public String toString() {
-        return "State{" +
-                "puzzle=" +
+        return
                 printArray(puzzle)
-                +
-                ", gScore=" + getgScore() +
-                ", hScore=" + gethScore() +
-                ", fScore=" + getfScore() +
-                ", emptyCoordinates=" + Arrays.toString(emptyCoordinates) +
-                '}';
+                        +
+                        ", gScore=" + getgScore() +
+                        ", hScore=" + gethScore() +
+                        ", fScore=" + getfScore() +
+                        ", emptyCoordinates=" + Arrays.toString(emptyCoordinates) +
+                        '}';
     }
 
-    private String printArray(int[][] array) {
+    private String printArray(@NotNull int[][] array) {
         StringBuilder sb = new StringBuilder();
         for (int[] row :
                 array) {
             sb.append(Arrays.toString(row));
+            sb.append("\n");
         }
         return sb.toString();
     }

@@ -34,7 +34,7 @@ public class SlidingBlocksAppTest {
      */
     @Test
     public void testGeneratePuzzle() throws Exception {
-        State initState = SlidingBlocksApp.generateInitState(n);
+        State initState = StateUtilities.generateInitState(n);
         HashSet<Integer> numbers = new HashSet<>();
 
         for (int[] row :
@@ -60,7 +60,7 @@ public class SlidingBlocksAppTest {
 
         };
 
-        final int[][] goalPuzzle = SlidingBlocksApp.getGoalPuzzle(n);
+        final int[][] goalPuzzle = StateUtilities.getGoalPuzzle(n);
 
         assertTrue(Arrays.deepEquals(expectedGoalPuzzle, goalPuzzle));
     }
